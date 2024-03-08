@@ -187,7 +187,7 @@ function compute_post_battle_unit_statuses()
     local unit_key = uic_unit:Id()
     local uic_health_bar = find_uicomponent(uic_unit, "card_image_holder", "health_frame", "health_bar")
     local unit_health_ratio = (find_uicomponent(uic_health_bar, "health_fill"):Width() - 1) / uic_health_bar:Width()
-    log("Unit key: " .. unit_key .. " - Current health ratio: " .. unit_health_ratio)
+    --log("Unit key: " .. unit_key .. " - Current health ratio: " .. unit_health_ratio)
     table.insert(seduced_units_health_ratio_post_battle, 1, unit_health_ratio)
     if #seduced_units_health_ratio_post_battle == #seduced_units then
       break
