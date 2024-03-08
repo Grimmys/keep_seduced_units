@@ -1,5 +1,4 @@
-local LOG_PREFIX = "[KeepSeducedUnits] "
-local MAX_ATTEMPTS = 5
+local MAX_RETRY_ATTEMPTS = 5
 
 local seducer_force_cqi = 0
 local is_seducer_human = false
@@ -30,10 +29,8 @@ function keep_seduced_units()
           is_seducer_human = context:faction():is_human()
           seducer_force_cqi = get_force_cqi_in_battle_from_faction_name(context:faction():name())
           active_battle_with_seduction = true
-          log("New unit seduced: " .. context:ancillary():unit_key() .. " - " .. context:ancillary():faction():name())
-          log("Seducer Force CQI: " .. tostring(seducer_force_cqi))
-          log("Seducer faction: " .. context:faction():name() .. " - Seduced unit CQI: " .. tostring(context:ancillary():command_queue_index()))
-          log("New seduced units size: " .. #seduced_units)
+          -- log("New unit seduced: " .. context:ancillary():unit_key() .. " - " .. context:ancillary():faction():name())
+          -- log("Seducer Force CQI: " .. tostring(seducer_force_cqi))
         end,
         true
     )
@@ -61,7 +58,7 @@ function keep_seduced_units()
       end,
       true
     )
-²
+
     core:add_listener(
       "KeepSeducedUnits_SeducedUnitAddedToForce",
       "UnitCreated",
@@ -91,7 +88,6 @@ cm:add_saving_game_callback(
       cm:save_named_value("ksu_seducer_force_cqi", seducer_force_cqi, context)
       cm:save_named_value("ksu_is_seducer_human", is_seducer_human, context)
       cm:save_named_value("ksu_seduced_units", seduced_units, context)
-      cm:save_named_value("ksu_seduced_unit_keys", seduced_unit_keys, context)
       cm:save_named_value("ksu_seduced_units_health_ratio_post_battle", seduced_units_health_ratio_post_battle, context)
       cm:save_named_value("ksu_active_battle_with_seduction", active_battle_with_seduction, context)
   end
@@ -127,7 +123,7 @@ end
 function check_post_battle_seduced_units()
   local was_able_to_read_statuses = compute_post_battle_unit_statuses()
   if not was_able_to_read_statuses then
-    if read_ui_values_attempt_count < MAX_ATTEMPTS then
+    if read_ui_values_attempt_count < MAX_RETRY_ATTEMPTS then
       read_ui_values_attempt_count = read_ui_values_attempt_count + 1
       core:get_tm():callback(check_post_battle_seduced_units, 1)
     else
@@ -170,9 +166,7 @@ function check_post_battle_seduced_units()
     end
   end
 
-  core:get_tm():real_callback(function ()
-    active_battle_with_seduction = false
-  end, 10)
+  core:get_tm():real_callback(reset_seduce_state_variables, 10)
 end
 
 function compute_post_battle_unit_statuses()
@@ -195,7 +189,6 @@ function compute_post_battle_unit_statuses()
     local unit_health_ratio = (find_uicomponent(uic_health_bar, "health_fill"):Width() - 1) / uic_health_bar:Width()
     log("Unit key: " .. unit_key .. " - Current health ratio: " .. unit_health_ratio)
     table.insert(seduced_units_health_ratio_post_battle, 1, unit_health_ratio)
-    log("Seduced units table size: " .. tostring(#seduced_units))
     if #seduced_units_health_ratio_post_battle == #seduced_units then
       break
     end
@@ -210,23 +203,5 @@ function reset_seduce_state_variables()
   seduced_units_health_ratio_post_battle = {}
   active_battle_with_seduction = false
   read_ui_values_attempt_count = 0
-  log("Seducing state variables cleared")
-end
-
-function table.find_index_with_key(list, search_value, entry_key)
-  for index, value in ipairs(list) do
-    log("Current value from list: " .. tostring(value[entry_key]) .. ", compared to: " .. tostring(search_value))
-    if value[entry_key] == search_value then
-      return index
-    end
-  end
-  return -1
-end
-
-function table.clone(original)
-  return {unpack(original)}
-end
-
-function log(message)
-  out(LOG_PREFIX .. message)
+  --log("Seducing state variables cleared")
 end
