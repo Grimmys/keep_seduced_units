@@ -5,13 +5,15 @@ local seduced_units_health_ratio_post_battle = {}
 local active_battle_with_seduction = false -- neccessary variable for skipping UnitCreated events happening right after settlement capture but not related to seduction
 
 function keep_seduced_units()
+  set_log_level("ERROR")
+
   local function reset_seduce_state_variables()
     seducer_force_cqi = 0
     is_seducer_human = false
     seduced_units = {}
     seduced_units_health_ratio_post_battle = {}
     active_battle_with_seduction = false
-    --log("Seducing state variables cleared")
+    log("Seducing state variables cleared", "DEBUG")
   end
 
   local function get_force_cqi_in_battle_from_faction_name(faction_name)
@@ -27,7 +29,7 @@ function keep_seduced_units()
       return defender:military_force():command_queue_index()
     end
 
-    log("ERROR: Cannot get force CQI in battle for faction " .. faction_name)
+    log("ERROR: Cannot get force CQI in battle for faction " .. faction_name, "ERROR")
     return 0
   end
 
@@ -46,10 +48,9 @@ function keep_seduced_units()
     -- Looping in reverse order because seduced units are at the end
     for i = uic_units:ChildCount() - 1, 0, -1 do
       local uic_unit = UIComponent(uic_units:Find(i))
-      local unit_key = uic_unit:Id()
       local uic_health_bar = find_uicomponent(uic_unit, "card_image_holder", "health_frame", "health_bar")
       local unit_health_ratio = (find_uicomponent(uic_health_bar, "health_fill"):Width() - 1) / uic_health_bar:Width()
-      --log("Unit key: " .. unit_key .. " - Current health ratio: " .. unit_health_ratio)
+      log("Unit key: " .. uic_unit:Id() .. " - Current health ratio: " .. unit_health_ratio, "INFO")
       table.insert(seduced_units_health_ratio_post_battle, 1, unit_health_ratio)
       if #seduced_units_health_ratio_post_battle == #seduced_units then
         break
@@ -117,8 +118,8 @@ function keep_seduced_units()
       is_seducer_human = context:faction():is_human()
       seducer_force_cqi = get_force_cqi_in_battle_from_faction_name(context:faction():name())
       active_battle_with_seduction = true
-      -- log("New unit seduced: " .. context:ancillary():unit_key() .. " - " .. context:ancillary():faction():name())
-      -- log("Seducer Force CQI: " .. tostring(seducer_force_cqi))
+      log("New unit seduced: " .. context:ancillary():unit_key() .. " - " .. context:ancillary():faction():name(), "DEBUG")
+      log("Seducer Force CQI: " .. tostring(seducer_force_cqi), "DEBUG")
     end,
     true
   )
@@ -157,7 +158,7 @@ function keep_seduced_units()
       local unit_added_to_force = context:unit()
       local seduced_unit_index = table.find_index_with_key(seduced_units, unit_added_to_force:unit_key(), "key")
       if seduced_unit_index == -1 then
-        log("ERROR: Unit addded to force cannot be found in list of seduced units.")
+        log("ERROR: Unit addded to force cannot be found in list of seduced units", "ERROR")
         return
       end
 
