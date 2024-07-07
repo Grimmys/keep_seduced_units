@@ -16,6 +16,12 @@ function keep_seduced_units()
     log("Seducing state variables cleared", "DEBUG")
   end
 
+  local function custom_grant_unit_to_character(character, unit_key)
+    local payload = cm:create_payload();
+    payload:add_unit(character:military_force(), unit_key, 1, 0);
+    cm:apply_payload(payload, character:faction());
+  end
+
   local function get_force_cqi_in_battle_from_faction_name(faction_name)
     local pending_battle = cm:model():pending_battle()
     local attacker = pending_battle:attacker()
@@ -87,7 +93,8 @@ function keep_seduced_units()
       clone_seduced_units_health_ratio = table.clone(seduced_units_health_ratio_post_battle)
       for index, seduced_unit in ipairs(clone_seduced_units) do
         if clone_seduced_units_health_ratio[index] > 0 then
-          cm:grant_unit_to_character(cm:char_lookup_str(seducer_character), seduced_unit["key"])
+          log("Grant unit: " .. seduced_unit["key"] .. " to seducer force: " .. tostring(seducer_character), "DEBUG")
+          custom_grant_unit_to_character(seducer_character, seduced_unit["key"])
           if victim_character and not victim_character:is_null_interface() then
             cm:remove_unit_from_character(cm:char_lookup_str(victim_character), seduced_unit["key"])
           end
@@ -143,6 +150,7 @@ function keep_seduced_units()
       return active_battle_with_seduction
     end,
     function (context)
+      log("Clear state variables from ScriptEventBattleSequenceCompleted", "DEBUG")
       reset_seduce_state_variables()
     end,
     true
@@ -161,7 +169,6 @@ function keep_seduced_units()
         log("ERROR: Unit addded to force cannot be found in list of seduced units", "ERROR")
         return
       end
-
       cm:set_unit_hp_to_unary_of_maximum(unit_added_to_force, seduced_units_health_ratio_post_battle[seduced_unit_index])
       -- TODO: also take into consideration xp earned during this battle (take from UI?)
       cm:add_experience_to_unit(unit_added_to_force, seduced_units[seduced_unit_index]["exp"])
