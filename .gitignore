@@ -1,5 +1,7 @@
 keep_seduced_units.sublime-project
 keep_seduced_units.sublime-workspace
+settings.rpfm_reserved.json
+notes.rpfm_reserved.md
 .vscode
 .luarc.json
 .git

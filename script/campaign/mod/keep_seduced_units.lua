@@ -120,12 +120,12 @@ function keep_seduced_units()
       return attacker:faction():is_human() or defender:faction():is_human()
     end,
     function(context)
-      table.insert(seduced_units, {key = context:ancillary():unit_key(), exp = context:ancillary():experience_level()})
+      table.insert(seduced_units, {key = context:unit():unit_key(), exp = context:unit():experience_level()})
       -- TODO: handle case where both factions are seducing
       is_seducer_human = context:faction():is_human()
       seducer_force_cqi = get_force_cqi_in_battle_from_faction_name(context:faction():name())
       active_battle_with_seduction = true
-      log("New unit seduced: " .. context:ancillary():unit_key() .. " - " .. context:ancillary():faction():name(), "DEBUG")
+      log("New unit seduced: " .. context:unit():unit_key() .. " - " .. context:unit():faction():name(), "DEBUG")
       log("Seducer Force CQI: " .. tostring(seducer_force_cqi), "DEBUG")
     end,
     true
